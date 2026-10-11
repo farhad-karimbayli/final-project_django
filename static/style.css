@@ -1,0 +1,31 @@
+:root { --brand: #6750e8; --ink: #16151b; --soft: #f5f4fa; }
+body { background: #fbfafc; color: var(--ink); }
+.navbar-brand { letter-spacing: -.04em; }
+.page-heading { margin: 1rem 0 2rem; }
+.eyebrow { color: var(--brand); font-size: .78rem; font-weight: 800; letter-spacing: .14em; margin-bottom: .4rem; }
+.btn-primary { background: var(--brand); border-color: var(--brand); }
+.card { border: 1px solid #e8e5ed; border-radius: 1rem; }
+.card-link { color: inherit; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+.card-link:hover, .offer-card:hover { transform: translateY(-3px); box-shadow: 0 .75rem 2rem rgba(38, 25, 78, .1)!important; }
+.offer-image { height: 210px; width: 100%; object-fit: cover; }
+.offer-placeholder { display: grid; place-items: center; background: linear-gradient(135deg, #dcd6ff, #f2e9ff); color: #4d3bb0; font-size: 1.15rem; font-weight: 700; }
+.detail-image { height: 390px; width: 100%; object-fit: cover; }
+.rating { color: #b06b00; font-weight: 700; }
+.filter-panel select, .filter-panel input { display: block; width: 100%; padding: .55rem .7rem; border: 1px solid #d8d4df; border-radius: .5rem; }
+.form-card { max-width: 720px; }
+.auth-card { max-width: 470px; }
+.form-card input, .form-card textarea, .form-card select, .auth-card input { display: block; width: 100%; padding: .65rem .75rem; border: 1px solid #d8d4df; border-radius: .55rem; }
+.helptext { display: block; color: #6c757d; font-size: .84rem; }
+.errorlist { color: #b42318; margin: .3rem 0; }
+.avatar-xl, .avatar-lg, .avatar-md { object-fit: cover; border-radius: 50%; flex: 0 0 auto; }
+.avatar-xl { width: 120px; height: 120px; font-size: 2.4rem; }
+.avatar-lg { width: 88px; height: 88px; font-size: 1.8rem; }
+.avatar-md { width: 56px; height: 56px; font-size: 1.25rem; }
+.avatar-placeholder { display: grid; place-items: center; background: #e4dfff; color: #513fc0; font-weight: 800; }
+.empty-state { text-align: center; padding: 4rem; border: 1px dashed #ccc5d6; border-radius: 1rem; color: #6c6572; }
+.status-draft { background: #e9ecef; color: #444; }
+.status-pending { background: #fff3cd; color: #664d03; }
+.status-published, .status-accepted, .status-completed { background: #d1e7dd; color: #0f5132; }
+.status-rejected, .status-cancelled { background: #f8d7da; color: #842029; }
+.sticky-card { position: sticky; top: 6rem; }
+@media (max-width: 767px) { .detail-image { height: 240px; } .sticky-card { position: static; } }

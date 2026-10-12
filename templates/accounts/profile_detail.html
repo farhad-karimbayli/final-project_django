@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ profile_user.username }} · SkillSwap{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-4"><div class="card-body p-4">
+  <div class="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+    {% if profile_user.profile.avatar %}<img src="{{ profile_user.profile.avatar.url }}" class="avatar-xl" alt="{{ profile_user.username }}">
+    {% else %}<div class="avatar-xl avatar-placeholder">{{ profile_user.username|first|upper }}</div>{% endif %}
+    <div class="flex-grow-1">
+      <div class="d-flex align-items-center gap-2"><h1 class="mb-1">{{ profile_user.username }}</h1>{% if not profile_user.is_active %}<span class="badge text-bg-danger">Banned</span>{% endif %}</div>
+      <p class="text-secondary">{{ profile_user.profile.bio|default:"This mentor has not added a bio yet." }}</p>
+      <div class="d-flex flex-wrap gap-4">
+        <div><strong>{{ profile_user.profile.average_rating|default:"—" }}</strong><small class="d-block text-secondary">Average rating</small></div>
+        <div><strong>{{ profile_user.profile.published_offers_count }}</strong><small class="d-block text-secondary">Published offers</small></div>
+        <div><strong>{{ profile_user.profile.completed_lessons_count }}</strong><small class="d-block text-secondary">Completed lessons</small></div>
+      </div>
+    </div>
+    {% if user == profile_user %}<a class="btn btn-outline-primary" href="{% url 'profile_edit' %}">Edit profile</a>{% endif %}
+  </div>
+</div></div>
+<h2 class="h4">Published offers</h2>
+<div class="row g-3 mb-5">{% for offer in published_offers %}<div class="col-md-6"><a class="card card-link h-100" href="{% url 'offer_detail' offer.pk %}"><div class="card-body"><span class="badge text-bg-light">{{ offer.category }}</span><h3 class="h5 mt-2">{{ offer.title }}</h3><p class="text-secondary mb-0">{{ offer.description|truncatewords:18 }}</p></div></a></div>{% empty %}<p class="text-secondary">No published offers yet.</p>{% endfor %}</div>
+<h2 class="h4">Reviews</h2>
+{% for review in reviews %}<div class="card mb-2"><div class="card-body"><div class="d-flex justify-content-between"><strong>{{ review.author.username }}</strong><span class="rating">★ {{ review.rating }}/5</span></div><small class="text-secondary">{{ review.offer.title }}</small><p class="mb-0 mt-2">{{ review.comment }}</p></div></div>{% empty %}<p class="text-secondary">No reviews yet.</p>{% endfor %}
+{% endblock %}
+

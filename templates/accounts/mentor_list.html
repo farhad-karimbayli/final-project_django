@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Mentors · SkillSwap{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">COMMUNITY</p><h1>Meet our mentors</h1><p class="text-secondary">People who are ready to share their skills.</p></div></div>
+<div class="row g-4">{% for mentor in mentors %}<div class="col-sm-6 col-lg-4"><a class="card card-link h-100" href="{% url 'profile_detail' mentor.username %}"><div class="card-body text-center p-4">{% if mentor.profile.avatar %}<img src="{{ mentor.profile.avatar.url }}" class="avatar-lg mb-3" alt="{{ mentor.username }}">{% else %}<div class="avatar-lg avatar-placeholder mx-auto mb-3">{{ mentor.username|first|upper }}</div>{% endif %}<h2 class="h5">{{ mentor.username }}</h2><p class="text-secondary">{{ mentor.profile.bio|truncatewords:15|default:"SkillSwap mentor" }}</p><div class="d-flex justify-content-center gap-3 small"><span>★ {% if mentor.mentor_rating %}{{ mentor.mentor_rating|floatformat:1 }}{% else %}—{% endif %}</span><span>{{ mentor.published_count }} offers</span></div></div></a></div>{% empty %}<p>No mentors yet.</p>{% endfor %}</div>
+{% endblock %}
+

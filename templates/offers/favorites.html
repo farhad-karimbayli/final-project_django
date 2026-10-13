@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block title %}Favorites · SkillSwap{% endblock %}{% block content %}<h1>Favorites</h1><p class="text-secondary">Skills you want to return to.</p><div class="row g-4">{% for offer in offers %}{% include "offers/_offer_card.html" %}{% empty %}<div class="empty-state"><h2 class="h4">Your favorites are empty</h2><a href="{% url 'offer_explore' %}">Explore skills</a></div>{% endfor %}</div>{% endblock %}
+

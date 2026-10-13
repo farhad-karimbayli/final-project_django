@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} · SkillSwap{% endblock %}
+{% block content %}<div class="form-card card shadow-sm mx-auto"><div class="card-body p-4"><h1 class="h3">{{ page_title }}</h1><p class="text-secondary">Offers submitted for publication are reviewed by an admin.</p><form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<div class="d-flex gap-2"><button class="btn btn-outline-secondary" name="save_draft">Save draft</button><button class="btn btn-primary">Submit for review</button></div></form></div></div>{% endblock %}
+

@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block content %}<div class="form-card card mx-auto"><div class="card-body p-4"><h1 class="h3">Delete review?</h1><p>{{ review.comment }}</p><form method="post">{% csrf_token %}<button class="btn btn-danger">Delete</button> <a class="btn btn-link" href="{% url 'offer_detail' review.offer.pk %}">Cancel</a></form></div></div>{% endblock %}
+

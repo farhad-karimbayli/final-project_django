@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block title %}Review · SkillSwap{% endblock %}{% block content %}<div class="form-card card mx-auto"><div class="card-body p-4"><h1 class="h3">Review your lesson</h1><p class="text-secondary">{{ lesson_request.offer.title }} with {{ lesson_request.offer.author.username }}</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Save review</button></form></div></div>{% endblock %}
+

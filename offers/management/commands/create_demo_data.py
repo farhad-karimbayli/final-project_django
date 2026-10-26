@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
+from accounts.models import Profile
+from accounts.permissions import set_role
 from bookings.models import LessonRequest
 from offers.management.commands.seed_categories import CATEGORY_NAMES
 from offers.models import Category, Favorite, Offer
@@ -31,13 +33,22 @@ class Command(BaseCommand):
             username="demo_student", defaults={"email": "student@example.com"}
         )
         admin, _ = User.objects.get_or_create(
-            username="demo_admin", defaults={"email": "admin@example.com", "is_staff": True}
+            username="demo_admin", defaults={"email": "admin@example.com"}
         )
-        mentor.is_active = student.is_active = admin.is_active = True
-        admin.is_staff = True
         for account in (mentor, student, admin):
+            account.is_active = True
             account.set_password(password)
             account.save()
+
+        set_role(mentor, Profile.Role.USER)
+        set_role(student, Profile.Role.USER)
+        set_role(admin, Profile.Role.ADMIN)
+        mentor.profile.is_banned = False
+        student.profile.is_banned = False
+        admin.profile.is_banned = False
+        Profile.objects.bulk_update(
+            [mentor.profile, student.profile, admin.profile], ["is_banned"]
+        )
 
         mentor.profile.bio = "Python developer who enjoys helping beginners build real projects."
         mentor.profile.save()

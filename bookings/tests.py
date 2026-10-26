@@ -37,6 +37,19 @@ class LessonRequestTests(TestCase):
         self.client.post(url, {"message": "Sending the same request again."})
         self.assertEqual(LessonRequest.objects.count(), 1)
 
+    def test_banned_user_cannot_send_lesson_request(self):
+        self.student.profile.is_banned = True
+        self.student.profile.save(update_fields=["is_banned"])
+        self.client.force_login(self.student)
+
+        response = self.client.post(
+            reverse("send_request", args=[self.offer.pk]),
+            {"message": "I would like a weekend lesson."},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(LessonRequest.objects.count(), 0)
+
     def test_offer_owner_controls_accept_reject_and_complete(self):
         lesson_request = LessonRequest.objects.create(offer=self.offer, requester=self.student)
         self.client.force_login(self.other)

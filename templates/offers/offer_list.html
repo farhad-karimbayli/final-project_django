@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title }} · SkillSwap{% endblock %}
 {% block content %}
-<div class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3"><div><p class="eyebrow">DISCOVER</p><h1>{{ page_title }}</h1><p class="text-secondary">Find the right person and learn something new.</p></div>{% if user.is_authenticated %}<a class="btn btn-primary" href="{% url 'offer_create' %}">Share a skill</a>{% endif %}</div>
+<div class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3"><div><p class="eyebrow">DISCOVER</p><h1>{{ page_title }}</h1><p class="text-secondary">Find the right person and learn something new.</p></div>{% if user.is_authenticated and not user.profile.is_banned %}<a class="btn btn-primary" href="{% url 'offer_create' %}">Share a skill</a>{% endif %}</div>
 <form method="get" class="filter-panel card card-body mb-4"><div class="row g-3 align-items-end">{% for field in filter_form %}<div class="col-sm-6 col-lg"><label class="form-label">{{ field.label }}</label>{{ field }}{{ field.errors }} </div>{% endfor %}<div class="col-lg-auto"><button class="btn btn-dark">Apply</button><a class="btn btn-link" href="{{ request.path }}">Clear</a></div></div></form>
 <div class="row g-4">{% for offer in offers %}{% include "offers/_offer_card.html" %}{% empty %}<div class="empty-state"><h2 class="h4">No offers found</h2><p>Try changing the filters or check back later.</p></div>{% endfor %}</div>
 {% endblock %}

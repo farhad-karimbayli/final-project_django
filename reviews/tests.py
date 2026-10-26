@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import Profile
 from bookings.models import LessonRequest
 from offers.models import Category, Offer
 
@@ -15,7 +16,9 @@ class ReviewTests(TestCase):
         cls.mentor = User.objects.create_user("mentor", password="pass")
         cls.student = User.objects.create_user("student", password="pass")
         cls.other = User.objects.create_user("other", password="pass")
-        cls.admin = User.objects.create_user("admin", password="pass", is_staff=True)
+        cls.admin = User.objects.create_user("admin", password="pass")
+        cls.admin.profile.role = Profile.Role.ADMIN
+        cls.admin.profile.save(update_fields=["role"])
         cls.offer = Offer.objects.create(
             title="Practical logo design",
             description="Learn a repeatable process for creating clear and memorable logos.",

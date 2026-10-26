@@ -7,8 +7,12 @@ from .models import Profile
 
 @receiver(post_save, sender=User)
 def ensure_profile(sender, instance, created, **kwargs):
-    if created:
-        Profile.objects.create(user=instance)
+    if instance.is_superuser:
+        role = Profile.Role.SUPER_ADMIN
+    elif instance.is_staff:
+        role = Profile.Role.ADMIN
     else:
-        Profile.objects.get_or_create(user=instance)
+        role = Profile.Role.USER
+
+    Profile.objects.get_or_create(user=instance, defaults={"role": role})
 

@@ -24,7 +24,7 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'my_offers' %}">My Offers</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'my_requests' %}">My Requests</a></li>
           {% endif %}
-          {% if user.is_staff %}
+          {% if user.profile.is_admin %}
             <li class="nav-item"><a class="nav-link text-warning" href="{% url 'moderation_queue' %}">Moderation</a></li>
             <li class="nav-item"><a class="nav-link text-warning" href="{% url 'user_management' %}">Users</a></li>
           {% endif %}

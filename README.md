@@ -5,13 +5,14 @@ SkillSwap is a Django platform where people publish skills they can teach and re
 ## Features
 
 - registration, login, logout, profiles, Cloudinary avatars;
-- four access levels: guest, user, admin, and super admin;
+- explicit profile roles: user, admin, and super admin, plus guest access;
 - skill offers with Cloudinary images, categories, levels, formats, and duration;
 - draft, pending, published, and rejected moderation states;
 - lesson requests with controlled status transitions;
 - one rating and review per completed lesson;
 - favorites, mentors, popular offers, search, and combined filters;
-- ownership checks, banned-user restrictions, and optimized related-object queries.
+- an explicit `is_banned` state with creation and lesson-request restrictions;
+- ownership checks and optimized related-object queries.
 
 ## Local setup
 
@@ -38,10 +39,13 @@ python manage.py create_demo_data --password "your-local-demo-password"
 
 ## Roles
 
-- A super admin is created with `createsuperuser` and can assign or remove admin access on the Users page.
+- A super admin is created with `createsuperuser` and receives the explicit `super_admin` profile role.
+- A super admin can assign or remove the explicit `admin` role on the Users page.
 - An admin can moderate and edit offers, ban users, and delete reviews.
 - A user can manage only their own offers, requests, favorites, and reviews.
 - A guest can browse published offers and public profiles.
+
+Banned users can still log in and browse the site, but they cannot create offers or send lesson requests.
 
 ## Checks
 

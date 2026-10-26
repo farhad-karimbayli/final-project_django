@@ -5,6 +5,7 @@ from django.db import IntegrityError
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.permissions import is_banned
 from offers.models import Offer
 
 from .forms import LessonRequestForm
@@ -19,7 +20,7 @@ def send_request(request, offer_id):
     if request.user == offer.author:
         messages.error(request, "You cannot request your own lesson.")
         return redirect("offer_detail", pk=offer.pk)
-    if not request.user.is_active:
+    if is_banned(request.user):
         return HttpResponseForbidden("Banned users cannot send lesson requests.")
     form = LessonRequestForm(request.POST)
     if form.is_valid():

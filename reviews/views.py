@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.permissions import is_admin
 from bookings.models import LessonRequest
 
 from .forms import ReviewForm
@@ -49,7 +50,7 @@ def review_update(request, pk):
 @login_required
 def review_delete(request, pk):
     review = get_object_or_404(Review.objects.select_related("offer"), pk=pk)
-    if review.author != request.user and not request.user.is_staff:
+    if review.author != request.user and not is_admin(request.user):
         return HttpResponseForbidden("You cannot delete this review.")
     if request.method == "POST":
         offer_id = review.offer_id

@@ -5,13 +5,18 @@ from django.db.models.deletion import ProtectedError
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.permissions import is_admin, is_banned, is_super_admin
+
 from .forms import AdminOfferForm, CategoryForm, ModerationForm, OfferFilterForm, OfferForm
 from .models import Category, Favorite, Offer
 
 
 def _published_offers():
     return (
-        Offer.objects.filter(status=Offer.Status.PUBLISHED, author__is_active=True)
+        Offer.objects.filter(
+            status=Offer.Status.PUBLISHED,
+            author__profile__is_banned=False,
+        )
         .select_related("author", "author__profile", "category")
         .annotate(
             rating_value=Avg("reviews__rating"),
@@ -89,7 +94,7 @@ def offer_detail(request, pk):
         pk=pk,
     )
     can_preview = request.user.is_authenticated and (
-        request.user == offer.author or request.user.is_staff
+        request.user == offer.author or is_admin(request.user)
     )
     if offer.status != Offer.Status.PUBLISHED and not can_preview:
         raise Http404
@@ -108,13 +113,9 @@ def offer_detail(request, pk):
     )
 
 
-def _user_can_create(user):
-    return user.is_authenticated and user.is_active
-
-
 @login_required
 def offer_create(request):
-    if not request.user.is_active:
+    if is_banned(request.user):
         return HttpResponseForbidden("Banned users cannot create offers.")
     form = OfferForm(request.POST or None, request.FILES or None)
     if request.method == "POST" and form.is_valid():
@@ -133,9 +134,10 @@ def offer_create(request):
 @login_required
 def offer_update(request, pk):
     offer = get_object_or_404(Offer, pk=pk)
-    if request.user != offer.author and not request.user.is_staff:
+    user_is_admin = is_admin(request.user)
+    if request.user != offer.author and not user_is_admin:
         return HttpResponseForbidden("You cannot edit this offer.")
-    form_class = AdminOfferForm if request.user.is_staff and request.user != offer.author else OfferForm
+    form_class = AdminOfferForm if user_is_admin and request.user != offer.author else OfferForm
     form = form_class(request.POST or None, request.FILES or None, instance=offer)
     if request.method == "POST" and form.is_valid():
         updated = form.save(commit=False)
@@ -153,12 +155,13 @@ def offer_update(request, pk):
 @login_required
 def offer_delete(request, pk):
     offer = get_object_or_404(Offer, pk=pk)
-    if request.user != offer.author and not request.user.is_staff:
+    user_is_admin = is_admin(request.user)
+    if request.user != offer.author and not user_is_admin:
         return HttpResponseForbidden("You cannot delete this offer.")
     if request.method == "POST":
         offer.delete()
         messages.success(request, "Offer deleted.")
-        return redirect("my_offers" if not request.user.is_staff else "offer_explore")
+        return redirect("offer_explore" if user_is_admin else "my_offers")
     return render(request, "offers/offer_confirm_delete.html", {"offer": offer})
 
 
@@ -188,17 +191,13 @@ def favorites(request):
     return render(request, "offers/favorites.html", {"offers": offers})
 
 
-def staff_required(user):
-    return user.is_authenticated and user.is_staff
-
-
-@user_passes_test(staff_required)
+@user_passes_test(is_admin)
 def moderation_queue(request):
     offers = Offer.objects.filter(status=Offer.Status.PENDING).select_related("author", "category")
     return render(request, "offers/moderation_queue.html", {"offers": offers})
 
 
-@user_passes_test(staff_required)
+@user_passes_test(is_admin)
 def moderate_offer(request, pk):
     offer = get_object_or_404(Offer, pk=pk, status=Offer.Status.PENDING)
     form = ModerationForm(request.POST or None)
@@ -216,7 +215,7 @@ def moderate_offer(request, pk):
     return render(request, "offers/moderate_offer.html", {"offer": offer, "form": form})
 
 
-@user_passes_test(lambda user: user.is_authenticated and user.is_superuser)
+@user_passes_test(is_super_admin)
 def category_create(request):
     form = CategoryForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -226,7 +225,7 @@ def category_create(request):
     return render(request, "offers/category_form.html", {"form": form, "page_title": "Create category"})
 
 
-@user_passes_test(lambda user: user.is_authenticated and user.is_superuser)
+@user_passes_test(is_super_admin)
 def category_update(request, pk):
     category = get_object_or_404(Category, pk=pk)
     form = CategoryForm(request.POST or None, instance=category)
@@ -237,7 +236,7 @@ def category_update(request, pk):
     return render(request, "offers/category_form.html", {"form": form, "page_title": "Edit category"})
 
 
-@user_passes_test(lambda user: user.is_authenticated and user.is_superuser)
+@user_passes_test(is_super_admin)
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == "POST":

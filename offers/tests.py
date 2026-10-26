@@ -3,6 +3,8 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import Profile
+
 from .models import Category, Favorite, Offer
 
 
@@ -12,7 +14,9 @@ class OfferTests(TestCase):
         cls.category = Category.objects.get(name="Programming")
         cls.owner = User.objects.create_user("mentor", password="pass")
         cls.other = User.objects.create_user("student", password="pass")
-        cls.admin = User.objects.create_user("admin", password="pass", is_staff=True)
+        cls.admin = User.objects.create_user("admin", password="pass")
+        cls.admin.profile.role = Profile.Role.ADMIN
+        cls.admin.profile.save(update_fields=["role"])
         cls.offer = Offer.objects.create(
             title="Learn Python basics",
             description="A practical introduction to Python for complete beginners.",
@@ -54,6 +58,16 @@ class OfferTests(TestCase):
 
         self.client.post(reverse("offer_create"), self.offer_data(title="Understand data structures"))
         self.assertTrue(Offer.objects.filter(author=self.other, status=Offer.Status.PENDING).exists())
+
+    def test_banned_user_cannot_create_offer(self):
+        self.other.profile.is_banned = True
+        self.other.profile.save(update_fields=["is_banned"])
+        self.client.force_login(self.other)
+
+        response = self.client.post(reverse("offer_create"), self.offer_data())
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Offer.objects.filter(author=self.other).exists())
 
     def test_editing_published_offer_returns_it_to_moderation(self):
         self.client.force_login(self.owner)

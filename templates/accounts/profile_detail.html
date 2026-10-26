@@ -6,7 +6,7 @@
     {% if profile_user.profile.avatar %}<img src="{{ profile_user.profile.avatar.url }}" class="avatar-xl" alt="{{ profile_user.username }}">
     {% else %}<div class="avatar-xl avatar-placeholder">{{ profile_user.username|first|upper }}</div>{% endif %}
     <div class="flex-grow-1">
-      <div class="d-flex align-items-center gap-2"><h1 class="mb-1">{{ profile_user.username }}</h1>{% if not profile_user.is_active %}<span class="badge text-bg-danger">Banned</span>{% endif %}</div>
+      <div class="d-flex align-items-center gap-2"><h1 class="mb-1">{{ profile_user.username }}</h1>{% if profile_user.profile.is_banned %}<span class="badge text-bg-danger">Banned</span>{% endif %}</div>
       <p class="text-secondary">{{ profile_user.profile.bio|default:"This mentor has not added a bio yet." }}</p>
       <div class="d-flex flex-wrap gap-4">
         <div><strong>{{ profile_user.profile.average_rating|default:"—" }}</strong><small class="d-block text-secondary">Average rating</small></div>

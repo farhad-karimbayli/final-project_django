@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+from .models import Profile
+
 
 class AccountTests(TestCase):
     def test_registration_creates_profile_and_logs_user_in(self):
@@ -17,6 +19,8 @@ class AccountTests(TestCase):
         user = User.objects.get(username="learner")
         self.assertRedirects(response, reverse("profile_edit"))
         self.assertEqual(user.profile.bio, "")
+        self.assertEqual(user.profile.role, Profile.Role.USER)
+        self.assertFalse(user.profile.is_banned)
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_duplicate_email_is_rejected_case_insensitively(self):
@@ -40,12 +44,13 @@ class AccountTests(TestCase):
         self.client.force_login(admin)
 
         self.client.post(reverse("toggle_ban", args=[member.pk]))
-        member.refresh_from_db()
-        self.assertFalse(member.is_active)
+        member.profile.refresh_from_db()
+        self.assertTrue(member.profile.is_banned)
+        self.assertTrue(member.is_active)
 
         self.client.post(reverse("toggle_ban", args=[root.pk]))
-        root.refresh_from_db()
-        self.assertTrue(root.is_active)
+        root.profile.refresh_from_db()
+        self.assertFalse(root.profile.is_banned)
 
     def test_only_superuser_can_assign_admin(self):
         admin = User.objects.create_user("admin", password="pass", is_staff=True)
@@ -53,16 +58,31 @@ class AccountTests(TestCase):
         self.client.force_login(admin)
         response = self.client.post(reverse("toggle_admin", args=[member.pk]))
         self.assertEqual(response.status_code, 302)
-        member.refresh_from_db()
-        self.assertFalse(member.is_staff)
+        member.profile.refresh_from_db()
+        self.assertEqual(member.profile.role, Profile.Role.USER)
 
         root = User.objects.create_superuser("root", "root@example.com", "pass")
+        self.assertEqual(root.profile.role, Profile.Role.SUPER_ADMIN)
         self.client.force_login(root)
         self.client.post(reverse("toggle_admin", args=[member.pk]))
         member.refresh_from_db()
+        member.profile.refresh_from_db()
         self.assertTrue(member.is_staff)
+        self.assertEqual(member.profile.role, Profile.Role.ADMIN)
 
-    def test_banned_user_cannot_log_in(self):
-        User.objects.create_user("blocked", password="StrongPass2026!", is_active=False)
-        self.assertFalse(self.client.login(username="blocked", password="StrongPass2026!"))
+    def test_banned_user_can_log_in(self):
+        blocked = User.objects.create_user("blocked", password="StrongPass2026!")
+        blocked.profile.is_banned = True
+        blocked.profile.save(update_fields=["is_banned"])
+        self.assertTrue(self.client.login(username="blocked", password="StrongPass2026!"))
+
+    def test_admin_permissions_use_profile_role_not_is_staff(self):
+        admin = User.objects.create_user("role_admin", password="pass")
+        admin.profile.role = Profile.Role.ADMIN
+        admin.profile.save(update_fields=["role"])
+        self.assertFalse(admin.is_staff)
+
+        self.client.force_login(admin)
+        response = self.client.get(reverse("user_management"))
+        self.assertEqual(response.status_code, 200)
 

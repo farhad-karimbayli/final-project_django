@@ -7,6 +7,8 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import ProfileForm, RegistrationForm
+from .models import Profile
+from .permissions import is_admin, is_super_admin, set_role
 
 
 def register(request):
@@ -51,7 +53,7 @@ def profile_edit(request):
 
 def mentor_list(request):
     mentors = (
-        User.objects.filter(offers__status="published", is_active=True)
+        User.objects.filter(offers__status="published", profile__is_banned=False)
         .select_related("profile")
         .annotate(
             published_count=Count(
@@ -65,42 +67,44 @@ def mentor_list(request):
     return render(request, "accounts/mentor_list.html", {"mentors": mentors})
 
 
-def staff_required(user):
-    return user.is_authenticated and user.is_staff
-
-
-@user_passes_test(staff_required)
+@user_passes_test(is_admin)
 def user_management(request):
     users = User.objects.select_related("profile").order_by("username")
     return render(request, "accounts/user_management.html", {"users": users})
 
 
-@user_passes_test(staff_required)
+@user_passes_test(is_admin)
 def toggle_ban(request, user_id):
     if request.method != "POST":
         return HttpResponseForbidden()
     target = get_object_or_404(User, pk=user_id)
-    if target == request.user or (target.is_superuser and not request.user.is_superuser):
+    if target == request.user or target.profile.role == Profile.Role.SUPER_ADMIN:
         messages.error(request, "You cannot change this user's status.")
     else:
-        target.is_active = not target.is_active
-        target.save(update_fields=["is_active"])
-        state = "unbanned" if target.is_active else "banned"
+        target.profile.is_banned = not target.profile.is_banned
+        target.profile.save(update_fields=["is_banned"])
+        state = "banned" if target.profile.is_banned else "unbanned"
         messages.success(request, f"{target.username} has been {state}.")
     return redirect("user_management")
 
 
-@user_passes_test(lambda user: user.is_authenticated and user.is_superuser)
+@user_passes_test(is_super_admin)
 def toggle_admin(request, user_id):
     if request.method != "POST":
         return HttpResponseForbidden()
     target = get_object_or_404(User, pk=user_id)
-    if target.is_superuser:
+    if target.profile.role == Profile.Role.SUPER_ADMIN:
         messages.error(request, "The super admin role cannot be changed here.")
     else:
-        target.is_staff = not target.is_staff
-        target.save(update_fields=["is_staff"])
-        role = "admin" if target.is_staff else "user"
-        messages.success(request, f"{target.username} is now an {role}.")
+        new_role = (
+            Profile.Role.USER
+            if target.profile.role == Profile.Role.ADMIN
+            else Profile.Role.ADMIN
+        )
+        set_role(target, new_role)
+        messages.success(
+            request,
+            f"{target.username}'s role is now {target.profile.get_role_display()}.",
+        )
     return redirect("user_management")
 
